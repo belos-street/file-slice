@@ -79,7 +79,7 @@ const httpPostAcceptFileChunk = (fileAccept: FileAccept) => {
     url: 'api/accept_file_chunk/',
     data: obj2FormData(fileAccept),
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 1 * 5 * 1000 //10分钟超时
+    timeout: 2 * 60 * 1000 //2分钟超时
   })
     .then((res) => {
       uploadChunkList.push(res.data.msg)
@@ -152,39 +152,3 @@ const uploadSuccess = (msg: string = '上传成功') => {
     </div>
   </div>
 </template>
-
-<style>
-#container {
-  width: 500px;
-  text-align: center;
-  align-self: center;
-}
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  display: flex;
-  justify-content: center;
-  color: #2c3e50;
-  height: 100vh;
-  width: 100vw;
-  position: relative;
-}
-
-.modal {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-}
-
-.modal-div {
-  margin-top: 100px;
-}
-
-.btn {
-  margin-top: 20px;
-}
-</style>
