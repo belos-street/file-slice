@@ -8,16 +8,17 @@ import axios from 'axios'
 import worker from './upload/uploadWorker?worker'
 import { obj2FormData } from './upload/obj2FormData'
 
-const uploadWorker = new worker()
-const fileList = ref<FileItem[]>([]) //文件选择组件的数据
-const percent = ref<number>(0)
-const modalShow = ref<boolean>(false)
-const CHUNK_SIZE = 1 * 1024 * 1024 * 10 //切片大小 10m
-const EXISTS = 'EXISTS' //文件已存在且合并成功
-const POST_UPLOAD_NUM = 6 //并发请求最大数
-let uploadChunkList: string[] = [] //已经上传成功的切片
-let queueIndex = POST_UPLOAD_NUM //当前切片上传请求数的指针
-let fileAcceptArr: FileAccept[] = [] //文件切片数组
+const uploadWorker = new worker(),
+  fileList = ref<FileItem[]>([]), //文件选择组件的数据
+  percent = ref<number>(0),
+  modalShow = ref<boolean>(false),
+  CHUNK_SIZE = 1 * 1024 * 1024 * 10, //切片大小 10m
+  EXISTS = 'EXISTS', //文件已存在且合并成功
+  POST_UPLOAD_NUM = 6, //并发请求最大数
+  TIME_OUT = 2 * 60 * 1000 //切片超时时间 2分钟
+let uploadChunkList: string[] = [], //已经上传成功的切片
+  queueIndex = POST_UPLOAD_NUM, //当前切片上传请求数的指针
+  fileAcceptArr: FileAccept[] = [] //文件切片数组
 
 const handleChange = (info: FileInfo) => {
   if (info.fileList.length >= 2) fileList.value = [info.fileList.pop() as FileItem]
@@ -79,7 +80,7 @@ const httpPostAcceptFileChunk = (fileAccept: FileAccept) => {
     url: 'api/accept_file_chunk/',
     data: obj2FormData(fileAccept),
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 2 * 60 * 1000 //2分钟超时
+    timeout: TIME_OUT
   })
     .then((res) => {
       uploadChunkList.push(res.data.msg)
@@ -96,6 +97,7 @@ const httpPostAcceptFileChunk = (fileAccept: FileAccept) => {
  *   getArrLength2Str(uploadChunkList) === fileAccept.chunk_number
  *    *true  说明全部切片都上传成功 请求合并切片
  *    *false 说明有未上传成功的切片 需要提示用户继续上传
+ * queueIndex++ 已上传/上传成功/上传失败都需要自增
  */
 const setNextFileAccept = (fileAccept: FileAccept) => {
   if (queueIndex - POST_UPLOAD_NUM === fileAcceptArr.length - 1)
